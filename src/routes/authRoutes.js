@@ -1,10 +1,14 @@
 const express = require('express');
 const router = express.Router();
-const { login, register } = require('@controllers/authController');
+const { login, register, sendOTP, verifyOTP, changePassword, myProfile } = require('@controllers/authController');
 const auth = require('@middlewares/authMiddleware');
 
 router.post('/login', login);
 router.post('/register', register);
+router.post('/sendOTP', sendOTP);
+router.post('/verifyOTP', verifyOTP);
+router.post('/changePassword', changePassword);
+router.get('/profile', auth('admin', 'user', 'guard'), myProfile);
 
 router.get('/admin-only', auth('admin'), (req, res) => {
   res.json({ message: 'Welcome, admin user!' });
