@@ -175,6 +175,28 @@ module.exports = {
     } catch (error) {
       return response.error(res, error);
     }
-  }
+  },
+
+  getAllUser: async (req, res) => {
+    console.log('AAAAAAA', req)
+    try {
+      const u = await User.find({ role: 'user' }, '-password');
+      console.log('AAAAAAA', u)
+      return response.ok(res, u);
+    } catch (error) {
+      return response.error(res, error);
+    }
+  },
+
+  getAllGuard: async (req, res) => {
+    console.log('AAAAAAA', req)
+    try {
+      const u = await User.find({ role: 'guard' }, '-password');
+      console.log('AAAAAAA', u)
+      return response.ok(res, u);
+    } catch (error) {
+      return response.error(res, error);
+    }
+  },
 
 };

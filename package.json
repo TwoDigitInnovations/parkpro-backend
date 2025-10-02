@@ -12,7 +12,8 @@
     "restart": "pm2 restart all --update-env",
     "prettier:check": "prettier --check .",
     "format": "npm run prettier && npm run lint:fix",
-    "build": "npm run prettier && npm run lint:fix"
+    "build": "npm run prettier && npm run lint:fix",
+    "start:dev": "nodemon src/server.js"
   },
   "author": "",
   "license": "ISC",
