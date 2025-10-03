@@ -1,4 +1,4 @@
-const Report = require('@models/report');
+const Report = require('@models/Report');
 const response = require("../responses");
 
 module.exports = {
