@@ -1,5 +1,7 @@
 const Report = require('@models/Report');
 const response = require("../responses");
+const notification = require("@models/notification");
+// const { notify } = require("../services/notification");
 
 module.exports = {
 
@@ -46,6 +48,13 @@ module.exports = {
             let report = new Report(payload);
             // console.log('BBBBBB', payload)
             await report.save();
+            let noty = await notification.create({
+                report_id: report._id,
+                user_id: req.user.id,
+                notification_title: 'New report created',
+                notification_description: 'Your report is created successfully. Our team will take action shortly',
+            });
+            // await notify(noty.report_id, noty.user_id, noty.notification_title, noty.notification_description);
             return response.ok(res, { message: 'Report added successfully' });
         } catch (error) {
             return response.error(res, error);
