@@ -3,6 +3,6 @@ const router = express.Router();
 const { getNotification } = require('@controllers/notificationController');
 const auth = require('@middlewares/authMiddleware');
 
-router.get('/getNotification', auth('admin'), getNotification);
+router.get('/getNotification', auth('admin', 'org'), getNotification);
 
 module.exports = router;
