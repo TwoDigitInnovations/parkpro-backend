@@ -4,12 +4,13 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const response = require("../responses");
 const mailservice = require('@services/mailservice');
-const userHelper = require('../helper/user')
+const userHelper = require('../helper/user');
+const moment = require('moment');
 
 module.exports = {
   register: async (req, res) => {
     try {
-      const { name, email, password, role } = req.body;
+      const { name, email, password, phone, role, organization } = req.body;
 
       if (password.length < 6) {
         return res
@@ -34,6 +35,13 @@ module.exports = {
         newUser.role = role;
       }
 
+      if (phone) {
+        newUser.phone = phone;
+      }
+      if (organization) {
+        newUser.organization = organization
+      }
+
       await newUser.save();
 
       const userResponse = await User.findById(newUser._id).select('-password');
@@ -47,6 +55,7 @@ module.exports = {
       res.status(500).json({ message: 'Server error' });
     }
   },
+
   login: async (req, res) => {
     try {
       const { email, password } = req.body;
@@ -73,6 +82,7 @@ module.exports = {
           id: user._id,
           email: user.email,
           name: user.name,
+          role: user.role
         },
       };
       return response.ok(res, newData);
@@ -178,10 +188,57 @@ module.exports = {
   },
 
   getAllUser: async (req, res) => {
-    console.log('AAAAAAA', req)
+    console.log('AAAAAAA', new Date(req.query.date))
     try {
-      const u = await User.find({ role: 'user' }, '-password');
-      console.log('AAAAAAA', u)
+      let cond = {
+        role: 'user',
+      };
+
+      let startDate
+      let endDate
+      if (req.query.date) {
+        startDate = new Date(req.query.date);
+        console.log('SDDDD', startDate)
+        endDate = new Date(new Date(req.query.date).setDate(startDate.getDate() + 1));
+        console.log('EDDDD', endDate)
+        cond.createdAt = { $gte: startDate, $lte: endDate };
+      }
+
+      if (req.query.key) {
+        cond['$or'] = [
+          { name: { $regex: req.query.key, $options: "i" } },
+        ]
+      }
+
+      if (req.query.email) {
+        cond['$or'] = [
+          { email: { $regex: req.query.email, $options: "i" } },
+        ]
+      }
+
+      if (req.query.key && req.query.date) {
+        cond['$or'] = [
+          { name: { $regex: req.query.key, $options: "i" } },
+          { createdAt: { $gte: startDate, $lte: endDate } },
+        ]
+      }
+
+      if (req.query.email && req.query.date) {
+        cond['$or'] = [
+          { email: { $regex: req.query.email, $options: "i" } },
+          { createdAt: { $gte: startDate, $lte: endDate } },
+        ]
+      }
+
+      if (req.query.key && req.query.emai && req.query.date) {
+        cond['$or'] = [
+          { name: { $regex: req.query.key, $options: "i" } },
+          { email: { $regex: req.query.email, $options: "i" } },
+          { createdAt: { $gte: startDate, $lte: endDate } },
+        ]
+      }
+
+      const u = await User.find(cond, '-password');
       return response.ok(res, u);
     } catch (error) {
       return response.error(res, error);
@@ -189,10 +246,117 @@ module.exports = {
   },
 
   getAllGuard: async (req, res) => {
-    console.log('AAAAAAA', req)
+    // console.log('AAAAAAA', req)
     try {
-      const u = await User.find({ role: 'guard' }, '-password');
-      console.log('AAAAAAA', u)
+      let cond = {
+        role: 'guard', organization: req.user._id,
+      };
+
+      let startDate
+      let endDate
+      if (req.query.date) {
+        startDate = new Date(req.query.date);
+        console.log('SDDDD', startDate)
+        endDate = new Date(new Date(req.query.date).setDate(startDate.getDate() + 1));
+        console.log('EDDDD', endDate)
+        cond.createdAt = { $gte: startDate, $lte: endDate };
+      }
+
+      if (req.query.key) {
+        cond['$or'] = [
+          { name: { $regex: req.query.key, $options: "i" } },
+        ]
+      }
+
+      if (req.query.email) {
+        cond['$or'] = [
+          { email: { $regex: req.query.email, $options: "i" } },
+        ]
+      }
+
+      if (req.query.key && req.query.date) {
+        cond['$or'] = [
+          { name: { $regex: req.query.key, $options: "i" } },
+          { createdAt: { $gte: startDate, $lte: endDate } },
+        ]
+      }
+
+      if (req.query.email && req.query.date) {
+        cond['$or'] = [
+          { email: { $regex: req.query.email, $options: "i" } },
+          { createdAt: { $gte: startDate, $lte: endDate } },
+        ]
+      }
+
+      if (req.query.key && req.query.emai && req.query.date) {
+        cond['$or'] = [
+          { name: { $regex: req.query.key, $options: "i" } },
+          { email: { $regex: req.query.email, $options: "i" } },
+          { createdAt: { $gte: startDate, $lte: endDate } },
+        ]
+      }
+
+
+      // console.log('AAAAAAA', req.user._id)
+      const u = await User.find(cond, '-password');
+      // console.log('BBBBBB', u)
+      return response.ok(res, u);
+    } catch (error) {
+      return response.error(res, error);
+    }
+  },
+
+  getAllTechnician: async (req, res) => {
+    try {
+      let cond = {
+        role: 'tech', organization: req.user._id,
+      };
+
+      let startDate
+      let endDate
+      if (req.query.date) {
+        startDate = new Date(req.query.date);
+        console.log('SDDDD', startDate)
+        endDate = new Date(new Date(req.query.date).setDate(startDate.getDate() + 1));
+        console.log('EDDDD', endDate)
+        cond.createdAt = { $gte: startDate, $lte: endDate };
+      }
+
+      if (req.query.key) {
+        cond['$or'] = [
+          { name: { $regex: req.query.key, $options: "i" } },
+        ]
+      }
+
+      if (req.query.email) {
+        cond['$or'] = [
+          { email: { $regex: req.query.email, $options: "i" } },
+        ]
+      }
+
+      if (req.query.key && req.query.date) {
+        cond['$or'] = [
+          { name: { $regex: req.query.key, $options: "i" } },
+          { createdAt: { $gte: startDate, $lte: endDate } },
+        ]
+      }
+
+      if (req.query.email && req.query.date) {
+        cond['$or'] = [
+          { email: { $regex: req.query.email, $options: "i" } },
+          { createdAt: { $gte: startDate, $lte: endDate } },
+        ]
+      }
+
+      if (req.query.key && req.query.emai && req.query.date) {
+        cond['$or'] = [
+          { name: { $regex: req.query.key, $options: "i" } },
+          { email: { $regex: req.query.email, $options: "i" } },
+          { createdAt: { $gte: startDate, $lte: endDate } },
+        ]
+      }
+
+      const u = await User.find(cond, '-password');
       return response.ok(res, u);
     } catch (error) {
       return response.error(res, error);

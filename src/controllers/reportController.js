@@ -6,7 +6,7 @@ const notification = require("@models/notification");
 module.exports = {
 
     createReport: async (req, res) => {
-        console.log("AAAAAAA", req.user)
+        // console.log("AAAAAAA", req.user)
         const payload = req?.body || {};
         // let photoUrl = [];
 
@@ -63,7 +63,39 @@ module.exports = {
 
     getReport: async (req, res) => {
         try {
-            let report = await Report.find().populate('user', '-password')
+            let cond = {};
+
+            let startDate
+            let endDate
+            if (req.query.date) {
+                startDate = new Date(req.query.date);
+                console.log('SDDDD', startDate)
+                endDate = new Date(new Date(req.query.date).setDate(startDate.getDate() + 1));
+                console.log('EDDDD', endDate)
+                cond.createdAt = { $gte: startDate, $lte: endDate };
+            }
+
+            if (req.query.key) {
+                cond['$or'] = [
+                    { issue_type: { $regex: req.query.key, $options: "i" } },
+                ]
+            }
+
+            if (req.query.status) {
+                cond['$or'] = [
+                    { status: { $regex: req.query.status, $options: "i" } },
+                ]
+            }
+
+            if (req.query.key && req.query.status && req.query.date) {
+                cond['$or'] = [
+                    { issue_type: { $regex: req.query.key, $options: "i" } },
+                    { status: { $regex: req.query.status, $options: "i" } },
+                    { createdAt: { $gte: startDate, $lte: endDate } },
+                ]
+            }
+
+            let report = await Report.find(cond).populate('user', '-password')
             return response.ok(res, report);
         } catch (error) {
             return response.error(res, error);
