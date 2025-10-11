@@ -37,7 +37,7 @@ app.get("/", (req, res) => {
 
 // Global Error Handler
 app.use((err, req, res, next) => {
-  console.error(err.stack);
+  console.error(req);
   res.status(500).json({ error: "Something went wrong!" });
 });
 
