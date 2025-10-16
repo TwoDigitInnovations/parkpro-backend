@@ -7,13 +7,19 @@ const reportSchema = new mongoose.Schema(
         license_plate_no: {
             type: Number,
         },
-        // photo: {
-        //     type: Array
-        // },
+        image: {
+            type: String
+        },
         issue_type: {
             type: String,
         },
         address: {
+            type: String,
+        },
+        machin_id: {
+            type: String,
+        },
+        description:{
             type: String,
         },
         user: {

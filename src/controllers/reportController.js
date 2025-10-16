@@ -45,6 +45,9 @@ module.exports = {
 
         try {
             payload.user = req.user.id;
+            if (req.file && req.file.location) {
+                payload.image = req.file.location; // Store the S3 file URL in the image field
+            }
             let report = new Report(payload);
             // console.log('BBBBBB', payload)
             await report.save();
@@ -63,6 +66,7 @@ module.exports = {
 
     getReport: async (req, res) => {
         try {
+            const { page = 1, limit = 20, } = req.query;
             let cond = {};
 
             let startDate
@@ -96,6 +100,9 @@ module.exports = {
             }
 
             let report = await Report.find(cond).populate('user', '-password')
+            .sort({createdAt: -1,})
+            .limit(limit * 1)
+            .skip((page - 1) * limit);;
             return response.ok(res, report);
         } catch (error) {
             return response.error(res, error);

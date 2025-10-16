@@ -1,7 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const { login, register, sendOTP, verifyOTP, changePassword, myProfile, getAllUser, getAllGuard, getAllTechnician } = require('@controllers/authController');
+const { login, register, sendOTP, verifyOTP, changePassword, myProfile, getAllUser, getAllGuard, getAllTechnician,updateprofile } = require('@controllers/authController');
 const auth = require('@middlewares/authMiddleware');
+const { upload } = require('@services/fileUpload');
 
 router.post('/login', login);
 router.post('/register', register);
@@ -9,6 +10,7 @@ router.post('/sendOTP', sendOTP);
 router.post('/verifyOTP', verifyOTP);
 router.post('/changePassword', changePassword);
 router.get('/profile', auth('admin', 'user', 'guard'), myProfile);
+router.post('/updateprofile', auth('admin', 'user', 'guard'),upload.single('image'), updateprofile);
 router.get('/getAllUser', auth('admin', 'org'), getAllUser);
 router.get('/getAllGuard', auth('admin', 'org'), getAllGuard);
 router.get('/getAllTechnician', auth('admin', 'org'), getAllTechnician);

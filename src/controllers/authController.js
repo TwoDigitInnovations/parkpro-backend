@@ -74,7 +74,7 @@ module.exports = {
         return response.unAuthorize(res, { message: 'Invalid credentials' });
       }
 
-      const token = jwt.sign({ id: user._id, email: user.email }, process.env.JWT_SECRET, { expiresIn: '1h' });
+      const token = jwt.sign({ id: user._id, email: user.email }, process.env.JWT_SECRET);
 
       const newData = {
         token,
@@ -182,6 +182,23 @@ module.exports = {
     try {
       const user = await User.findById(req.user.id, '-password');
       return response.ok(res, user);
+    } catch (error) {
+      return response.error(res, error);
+    }
+  },
+
+   updateprofile: async (req, res) => {
+    try {
+      const payload = req.body;
+      if (req.file && req.file.location) {
+        payload.image = req.file.location;
+      }
+      console.log('payload', req.user.id);
+      const user = await User.findByIdAndUpdate(req.user.id, payload, {
+        new: true,
+        upsert: true,
+      });
+      return response.ok(res, { user, message: 'Profile Updated Succesfully' });
     } catch (error) {
       return response.error(res, error);
     }
