@@ -46,7 +46,7 @@ module.exports = {
         try {
             payload.user = req.user.id;
             if (req.file && req.file.location) {
-                payload.image = req.file.location; // Store the S3 file URL in the image field
+                payload.image = req.file.location;
             }
             let report = new Report(payload);
             // console.log('BBBBBB', payload)
