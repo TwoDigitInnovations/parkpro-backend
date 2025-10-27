@@ -48,6 +48,8 @@ module.exports = {
             if (req.file && req.file.location) {
                 payload.image = req.file.location;
             }
+            // console.log('payload',JSON.parse(payload?.location))
+            payload.location=JSON.parse(payload?.location)
             let report = new Report(payload);
             // console.log('BBBBBB', payload)
             await report.save();
@@ -108,14 +110,88 @@ module.exports = {
             return response.error(res, error);
         }
     },
+    getReportForGuard: async (req, res) => {
+        try {
+           const { page = 1, limit = 20 } = req.query;
+const skip = (page - 1) * limit;
+const payload=req.body
+let obj ={status:"Pending"};
+if (payload?.type==='technician') {
+    obj.issue_type="Technical Support"
+}
+else{
+    obj.issue_type={ $ne: "Technical Support" }
+}
+const report = await Report.aggregate([
+  {
+    $geoNear: {
+      near: payload.location, // { type: "Point", coordinates: [lng, lat] }
+      distanceField: 'distance',
+      maxDistance: 1609.34 * 8, // 8 miles
+      spherical: true,
+    },
+},
+{ $match: obj },
+  // populate "user"
+  {
+    $lookup: {
+      from: 'users', // collection name in MongoDB (usually lowercase plural)
+      localField: 'user', // field in Report
+      foreignField: '_id', // field in User
+      as: 'user',
+    },
+  },
+  { $unwind: { path: '$user', preserveNullAndEmptyArrays: true } },
+  // populate "address"
+  {
+    $lookup: {
+      from: 'addresses',
+      localField: 'address',
+      foreignField: '_id',
+      as: 'address',
+    },
+  },
+  { $unwind: { path: '$address', preserveNullAndEmptyArrays: true } },
+  // remove password field
+  {
+    $project: {
+      'user.password': 0,
+    },
+  },
+  // pagination
+  { $skip: skip },
+  { $limit: parseInt(limit) },
+  { $sort: { createdAt: -1 } },
+]);
+
+            return response.ok(res, report);
+        } catch (error) {
+            return response.error(res, error);
+        }
+    },
 
     updateVerifyandSuspendStatus: async (req, res) => {
         try {
             const payload = req?.body || {};
+                payload.resolvedby=req.user.id
+
             let report = await Report.findByIdAndUpdate(payload?.id, payload, {
                 new: true,
                 upsert: true,
             });
+            return response.ok(res, report);
+        } catch (error) {
+            return response.error(res, error);
+        }
+    },
+    getReportHistory: async (req, res) => {
+        try {
+            const { page = 1, limit = 20, } = req.query;
+
+            let report = await Report.find({resolvedby:req.user.id}).populate('user', '-password')
+            .sort({createdAt: -1,})
+            .limit(limit * 1)
+            .skip((page - 1) * limit);;
             return response.ok(res, report);
         } catch (error) {
             return response.error(res, error);

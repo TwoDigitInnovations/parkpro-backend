@@ -2,6 +2,18 @@
 "use strict";
 const mongoose = require("mongoose");
 
+const pointSchema = new mongoose.Schema({
+    type: {
+        type: String,
+        enum: ["Point"],
+        default: "Point"
+    },
+    coordinates: {
+        type: [Number],
+        required: true
+    },
+});
+
 const reportSchema = new mongoose.Schema(
     {
         license_plate_no: {
@@ -22,7 +34,17 @@ const reportSchema = new mongoose.Schema(
         description:{
             type: String,
         },
+        status_description:{
+            type: String,
+        },
+        location: {
+            type: pointSchema,
+        },
         user: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "User",
+        },
+        resolvedby: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "User",
         },
@@ -53,4 +75,5 @@ reportSchema.set("toJSON", {
     },
 });
 
+reportSchema.index({ location: "2dsphere" });
 module.exports = mongoose.model("Report", reportSchema);
