@@ -25,6 +25,12 @@ const reportSchema = new mongoose.Schema(
         issue_type: {
             type: String,
         },
+        wrong_parking_type: {
+            type: String,
+        },
+        machine_issue_type: {
+            type: String,
+        },
         address: {
             type: String,
         },

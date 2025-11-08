@@ -117,10 +117,10 @@ const skip = (page - 1) * limit;
 const payload=req.body
 let obj ={status:"Pending"};
 if (payload?.type==='technician') {
-    obj.issue_type="Technical Support"
+    obj.issue_type="Ticket Machine"
 }
 else{
-    obj.issue_type={ $ne: "Technical Support" }
+    obj.issue_type={ $ne: "Ticket Machine" }
 }
 const report = await Report.aggregate([
   {
@@ -143,15 +143,15 @@ const report = await Report.aggregate([
   },
   { $unwind: { path: '$user', preserveNullAndEmptyArrays: true } },
   // populate "address"
-  {
-    $lookup: {
-      from: 'addresses',
-      localField: 'address',
-      foreignField: '_id',
-      as: 'address',
-    },
-  },
-  { $unwind: { path: '$address', preserveNullAndEmptyArrays: true } },
+//   {
+//     $lookup: {
+//       from: 'addresses',
+//       localField: 'address',
+//       foreignField: '_id',
+//       as: 'address',
+//     },
+//   },
+//   { $unwind: { path: '$address', preserveNullAndEmptyArrays: true } },
   // remove password field
   {
     $project: {
