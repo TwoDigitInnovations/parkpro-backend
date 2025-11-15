@@ -32,8 +32,9 @@ const reportSchema = new mongoose.Schema(
             type: String,
         },
         address: {
-            type: String,
-        },
+                    type: mongoose.Schema.Types.ObjectId,
+                    ref: "Address",
+                },
         machin_id: {
             type: String,
         },
