@@ -4,6 +4,7 @@ const notificationRoutes = require("@routes/notificationRoutes");
 const addressRoutes = require("@routes/addressRoute");
 const vehicleRoute = require("@routes/vehicleRoute");
 const rentSpotRoute = require("@routes/rentSpotRoute");
+const parkingRoute = require("@routes/parkingRoutes"); 
 
 module.exports = (app) => {
   app.use('/auth', authRoutes);
@@ -12,4 +13,5 @@ module.exports = (app) => {
   app.use('/address', addressRoutes);
   app.use('/vehicle', vehicleRoute);
   app.use('/rentspot', rentSpotRoute);
+  app.use('/parking', parkingRoute);
 };

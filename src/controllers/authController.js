@@ -187,7 +187,7 @@ module.exports = {
     }
   },
 
-   updateprofile: async (req, res) => {
+  updateprofile: async (req, res) => {
     try {
       const payload = req.body;
       if (req.file && req.file.location) {
@@ -263,65 +263,35 @@ module.exports = {
   },
 
   getAllGuard: async (req, res) => {
-    // console.log('AAAAAAA', req)
     try {
       let cond = {
-        role: 'guard', organization: req.user._id,
+        role: "guard",
+        organization: req.user._id,
       };
 
-      let startDate
-      let endDate
       if (req.query.date) {
-        startDate = new Date(req.query.date);
-        console.log('SDDDD', startDate)
-        endDate = new Date(new Date(req.query.date).setDate(startDate.getDate() + 1));
-        console.log('EDDDD', endDate)
+        const startDate = new Date(req.query.date);
+        const endDate = new Date(startDate);
+        endDate.setDate(startDate.getDate() + 1);
+
         cond.createdAt = { $gte: startDate, $lte: endDate };
       }
 
       if (req.query.key) {
-        cond['$or'] = [
-          { name: { $regex: req.query.key, $options: "i" } },
-        ]
+        cond.name = { $regex: req.query.key, $options: "i" };
       }
 
       if (req.query.email) {
-        cond['$or'] = [
-          { email: { $regex: req.query.email, $options: "i" } },
-        ]
+        cond.email = { $regex: req.query.email, $options: "i" };
       }
 
-      if (req.query.key && req.query.date) {
-        cond['$or'] = [
-          { name: { $regex: req.query.key, $options: "i" } },
-          { createdAt: { $gte: startDate, $lte: endDate } },
-        ]
-      }
-
-      if (req.query.email && req.query.date) {
-        cond['$or'] = [
-          { email: { $regex: req.query.email, $options: "i" } },
-          { createdAt: { $gte: startDate, $lte: endDate } },
-        ]
-      }
-
-      if (req.query.key && req.query.emai && req.query.date) {
-        cond['$or'] = [
-          { name: { $regex: req.query.key, $options: "i" } },
-          { email: { $regex: req.query.email, $options: "i" } },
-          { createdAt: { $gte: startDate, $lte: endDate } },
-        ]
-      }
-
-
-      // console.log('AAAAAAA', req.user._id)
-      const u = await User.find(cond, '-password');
-      // console.log('BBBBBB', u)
-      return response.ok(res, u);
+      const guards = await User.find(cond, "-password");
+      return response.ok(res, guards);
     } catch (error) {
       return response.error(res, error);
     }
   },
+
 
   getAllTechnician: async (req, res) => {
     try {
