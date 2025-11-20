@@ -6,6 +6,7 @@ const response = require("../responses");
 const mailservice = require('@services/mailservice');
 const userHelper = require('../helper/user');
 const moment = require('moment');
+const Device = require('@models/Device');
 
 module.exports = {
   register: async (req, res) => {
@@ -85,6 +86,11 @@ module.exports = {
           role: user.role
         },
       };
+       await Device.updateOne(
+        { device_token: req.body.device_token },
+        { $set: { player_id: req.body.player_id, user: user._id } },
+        { upsert: true },
+      );
       return response.ok(res, newData);
     } catch (error) {
       console.error(error);

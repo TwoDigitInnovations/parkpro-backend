@@ -14,6 +14,10 @@ const rentSpotSchema = new mongoose.Schema(
             type: mongoose.Schema.Types.ObjectId,
             ref: "User",
         },
+        parking_id: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Parking",
+        },
     }, {
     timestamps: true
 });

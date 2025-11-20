@@ -1,6 +1,6 @@
 const OneSignal = require('@onesignal/node-onesignal');
 const Device = require('@models/Device');
-const Notification = require('@models/Notification2');
+const Notification = require('@models/notification');
 const User = require('@models/User');
 
 const ONESIGNAL_APP_ID = process.env.ONESIGNAL_APP_ID;
@@ -26,6 +26,11 @@ async function sendNotification(content, player_ids, title) {
     notification.contents = {
       en: content,
     };
+     // if (notifictone) {
+      // notification.ios_sound=`${notifictone}.wav`;
+      // notification.android_sound='ordersreceived';
+      notification.android_channel_id='13b233fc-dff1-48f6-8a49-6d111f0bfc77';
+    // }
     if (title) {
       notification.headings = {
         en: title,

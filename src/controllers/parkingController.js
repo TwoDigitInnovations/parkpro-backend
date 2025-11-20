@@ -21,6 +21,18 @@ module.exports = {
             return response.error(res, error);
         }
     },
+    getParkingforRentSpot: async (req, res) => {
+        try {
+            let parking = await Parking.find({ location: {
+          $near: {
+            $maxDistance: 1609.34 * 1,
+            $geometry: req.body,
+          }} });
+            return response.ok(res, parking);
+        } catch (error) {
+            return response.error(res, error);
+        }
+    },
 
     getSingleParking: async (req, res) => {
         try {

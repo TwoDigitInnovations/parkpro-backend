@@ -1,6 +1,9 @@
 const Report = require('@models/Report');
 const response = require("../responses");
 const notification = require("@models/notification");
+const rentspot = require('@models/rentspot');
+const Parking = require("@models/Parking");
+const { notify } = require('@services/notification');
 // const { notify } = require("../services/notification");
 
 module.exports = {
@@ -48,18 +51,37 @@ module.exports = {
             if (req.file && req.file.location) {
                 payload.image = req.file.location;
             }
+            if (req.body.machin_id) {
+                const parking = await Parking.find({
+                        "machine.machineId": req.body.machin_id,
+                      });
+                      if (parking.length === 0) {
+                        return response.badReq(res, {
+                          message: 'Machine Id is not valid',
+                        });
+                      }
+                      console.log('PARKING', parking[0]);
+                      req.body.location=JSON.stringify(parking[0].location);
+                      req.body.text_address=parking[0].address;
+            }
+
             // console.log('payload',JSON.parse(payload?.location))
             payload.location=JSON.parse(payload?.location)
             let report = new Report(payload);
             // console.log('BBBBBB', payload)
             await report.save();
-            let noty = await notification.create({
-                report_id: report._id,
-                user_id: req.user.id,
-                notification_title: 'New report created',
-                notification_description: 'Your report is created successfully. Our team will take action shortly',
-            });
+            // let noty = await notification.create({
+            //     report_id: report._id,
+            //     user_id: req.user.id,
+            //     notification_title: 'New report created',
+            //     notification_description: 'Your report is created successfully. Our team will take action shortly',
+            // });
             // await notify(noty.report_id, noty.user_id, noty.notification_title, noty.notification_description);
+            await notify(
+            payload?.user,
+            'New report created',
+            'Your report is created successfully. Our team will take action shortly',
+            );
             return response.ok(res, { message: 'Report added successfully' });
         } catch (error) {
             return response.error(res, error);
@@ -117,10 +139,10 @@ const skip = (page - 1) * limit;
 const payload=req.body
 let obj ={status:"Pending"};
 if (payload?.type==='technician') {
-    obj.issue_type="Ticket Machine"
+    obj.issue_type="Broken Kiosk"
 }
 else{
-    obj.issue_type={ $ne: "Ticket Machine" }
+    obj.issue_type={ $ne: "Broken Kiosk" }
 }
 const report = await Report.aggregate([
   {
@@ -143,15 +165,15 @@ const report = await Report.aggregate([
   },
   { $unwind: { path: '$user', preserveNullAndEmptyArrays: true } },
   // populate "address"
-//   {
-//     $lookup: {
-//       from: 'addresses',
-//       localField: 'address',
-//       foreignField: '_id',
-//       as: 'address',
-//     },
-//   },
-//   { $unwind: { path: '$address', preserveNullAndEmptyArrays: true } },
+  {
+    $lookup: {
+      from: 'addresses',
+      localField: 'address',
+      foreignField: '_id',
+      as: 'address',
+    },
+  },
+  { $unwind: { path: '$address', preserveNullAndEmptyArrays: true } },
   // remove password field
   {
     $project: {
@@ -179,6 +201,11 @@ const report = await Report.aggregate([
                 new: true,
                 upsert: true,
             });
+            await notify(
+            report?.user,
+            `Report ${payload.status}`,
+            `Your report has been ${payload.status}d`,
+            );
             return response.ok(res, report);
         } catch (error) {
             return response.error(res, error);

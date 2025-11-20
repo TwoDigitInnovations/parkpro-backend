@@ -72,5 +72,5 @@ parkingSchema.set('toJSON', {
         return ret;
     }
 });
-
+parkingSchema.index({ location: "2dsphere" });
 module.exports = mongoose.model('Parking', parkingSchema);

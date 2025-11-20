@@ -5,6 +5,7 @@ const auth = require('@middlewares/authMiddleware');
 
 router.post("/CreateParking", auth('admin', 'org'), Parking.CreateParking);
 router.get("/getParking", auth('admin', 'org'), Parking.getParking);
+router.post("/getParkingforRentSpot", auth('admin', 'org','user'), Parking.getParkingforRentSpot);
 router.get("/getSingleParking/:id", auth('admin', 'org'), Parking.getSingleParking);
 router.put("/updateParking/:id", auth('admin', 'org'), Parking.updateParking);
 router.delete("/deleteParking/:id", auth('admin', 'org'), Parking.deleteParking);

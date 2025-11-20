@@ -3,20 +3,17 @@
 const mongoose = require('mongoose');
 const notificationSchema = new mongoose.Schema(
     {
-        notification_title: {
+        title: {
             type: String,
         },
-        notification_description: {
+        description: {
             type: String,
         },
         report_id: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "Report",
         },
-        user_id: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "User",
-        },
+        for: [{ type: mongoose.Types.ObjectId, ref: "User" }],
     }, {
     timestamps: true
 });
