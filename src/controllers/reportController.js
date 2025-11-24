@@ -133,6 +133,19 @@ module.exports = {
             return response.error(res, error);
         }
     },
+    getReportforuser: async (req, res) => {
+        try {
+            const { page = 1, limit = 20, } = req.query;
+
+            let report = await Report.find({user:req.user.id}).populate('user', '-password')
+            .sort({createdAt: -1,})
+            .limit(limit * 1)
+            .skip((page - 1) * limit);;
+            return response.ok(res, report);
+        } catch (error) {
+            return response.error(res, error);
+        }
+    },
     getReportForGuard: async (req, res) => {
         try {
            const { page = 1, limit = 20 } = req.query;
