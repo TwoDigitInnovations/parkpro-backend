@@ -4,6 +4,7 @@ const notification = require("@models/notification");
 const rentspot = require('@models/rentspot');
 const Parking = require("@models/Parking");
 const { notify } = require('@services/notification');
+const { default: mongoose } = require('mongoose');
 // const { notify } = require("../services/notification");
 
 module.exports = {
@@ -136,8 +137,9 @@ module.exports = {
         try {
            const { page = 1, limit = 20 } = req.query;
 const skip = (page - 1) * limit;
+const userId = new mongoose.Types.ObjectId(req.user.id)
 const payload=req.body
-let obj ={status:"Pending"};
+let obj ={rejectedguardandtech: { $nin: [userId] }};
 if (payload?.type==='technician') {
     obj.issue_type="Broken Kiosk"
 }
@@ -224,4 +226,42 @@ const report = await Report.aggregate([
             return response.error(res, error);
         }
     },
+    updatereportstatus: async (req, res) => {
+    try {
+      const payload = req?.body || {};
+      if (!payload.id || !payload.status) {
+        return response.error(res, {
+          message: 'Booking id and status are required',
+        });
+      }
+    //   const update = { $set: { status: payload.status } };
+      const update = {};
+      if (payload.status === 'cancel') {
+        // add instructor to rejectedbyinstructer array (no duplicates)
+        update.$addToSet = { rejectedguardandtech: req.user.id };
+    } else {
+        update.accepted_by = req.user.id ;
+        update.$set = { status: 'Accepted' };
+      }
+      const data = await Report.findByIdAndUpdate(payload?.id, update);
+      if (payload.status === 'cancel') {
+        // await notify(
+        //   data?.user,
+        //   'Session Canceled',
+        //   'Your session was canceled by the instructor. Please select another instructor.',
+        // );
+      } else {
+        await notify(
+          data?.user,
+          'Officer assigned',
+          'Officer assigned to your report.',
+        );
+      }
+      return response.ok(res, {
+        message: `Report ${payload.status === 'cancel' ? 'Canceled' : 'Accepted'}`,
+      });
+    } catch (error) {
+      return response.error(res, error);
+    }
+  },
 };

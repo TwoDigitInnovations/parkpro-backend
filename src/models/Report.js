@@ -57,9 +57,19 @@ const reportSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
     },
+    accepted_by: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+    },
+    rejectedguardandtech: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+      },
+    ],
     status: {
       type: String,
-      enum: ['Pending', 'Verified', 'Suspended'],
+      enum: ['Pending', 'Accepted','Penalty issued','Vehicle Missing','Resolve','Unresolve'],
       default: 'Pending',
     },
     // verified: {
