@@ -83,7 +83,8 @@ module.exports = {
           id: user._id,
           email: user.email,
           name: user.name,
-          role: user.role
+          role: user.role,
+          image:user.image
         },
       };
        await Device.updateOne(
@@ -261,7 +262,7 @@ module.exports = {
         ]
       }
 
-      const u = await User.find(cond, '-password');
+      const u = await User.find(cond, '-password').sort({createdAt: -1,});
       return response.ok(res, u);
     } catch (error) {
       return response.error(res, error);
@@ -291,7 +292,7 @@ module.exports = {
         cond.email = { $regex: req.query.email, $options: "i" };
       }
 
-      const guards = await User.find(cond, "-password");
+      const guards = await User.find(cond, "-password").sort({createdAt: -1,});
       return response.ok(res, guards);
     } catch (error) {
       return response.error(res, error);
@@ -349,7 +350,7 @@ module.exports = {
         ]
       }
 
-      const u = await User.find(cond, '-password');
+      const u = await User.find(cond, '-password').sort({createdAt: -1,});
       return response.ok(res, u);
     } catch (error) {
       return response.error(res, error);

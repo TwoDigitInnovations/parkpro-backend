@@ -152,7 +152,7 @@ module.exports = {
 const skip = (page - 1) * limit;
 const userId = new mongoose.Types.ObjectId(req.user.id)
 const payload=req.body
-let obj ={rejectedguardandtech: { $nin: [userId] }};
+let obj ={rejectedguardandtech: { $nin: [userId] },status:{$in:['Accepted','Pending']}};
 if (payload?.type==='technician') {
     obj.issue_type="Broken Kiosk"
 }
