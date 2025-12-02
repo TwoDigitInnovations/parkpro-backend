@@ -230,7 +230,7 @@ const report = await Report.aggregate([
         try {
             const { page = 1, limit = 20, } = req.query;
 
-            let report = await Report.find({resolvedby:req.user.id}).populate('user', '-password')
+            let report = await Report.find({resolvedby:req.user.id}).populate('user address', '-password')
             .sort({createdAt: -1,})
             .limit(limit * 1)
             .skip((page - 1) * limit);;
