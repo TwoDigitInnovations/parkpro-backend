@@ -219,7 +219,7 @@ const report = await Report.aggregate([
             await notify(
             report?.user,
             `Report ${payload.status}`,
-            `Your report has been ${payload.status}d`,
+            `Your report has been ${payload.status}`,
             );
             return response.ok(res, report);
         } catch (error) {
