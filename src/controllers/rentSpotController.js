@@ -30,8 +30,12 @@ module.exports = {
         lot_number: { $in: req.body.lot_number },
       });
       if (parking.length > 0) {
+        const takenLots = parking.flatMap(p => p.lot_number);
+        console.log("takenLots",takenLots)
         return response.badReq(res, {
-          message: 'Lot no already taken by someone',
+          message:takenLots.length > 1
+        ? `Lot numbers ${takenLots.join(', ')} are already taken`
+        : `Lot number ${takenLots[0]} is already taken`,
         });
       }
 
@@ -88,8 +92,12 @@ module.exports = {
         lot_number: { $in: req.body.lot_number },
       });
       if (parking.length > 0) {
+        const takenLots = parking.flatMap(p => p.lot_number);
+        console.log("takenLots",takenLots)
         return response.badReq(res, {
-          message: 'Lot no already taken by someone',
+          message:takenLots.length > 1
+        ? `Lot numbers ${takenLots.join(', ')} are already taken`
+        : `Lot number ${takenLots[0]} is already taken`,
         });
       }
       let rent = await rentspot.findByIdAndUpdate(req.params.id, req.body);
