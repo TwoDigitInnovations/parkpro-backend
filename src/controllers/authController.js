@@ -13,6 +13,11 @@ module.exports = {
     try {
       const { name, email, password, phone, role, organization } = req.body;
 
+      if (true) {
+        return res
+          .status(400)
+          .json({ message: 'Registration is temporarily unavailable. Please try again later.' });
+      }
       if (password.length < 6) {
         return res
           .status(400)
