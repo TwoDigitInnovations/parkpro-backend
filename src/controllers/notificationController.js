@@ -1,12 +1,30 @@
 const Notification = require('@models/notification');
 const response = require("../responses");
+const { default: mongoose } = require('mongoose');
 
 module.exports = {
 
     getNotification: async (req, res) => {
         try {
-            let notification = await Notification.find()
-            return response.ok(res, notification);
+            const notifications = await Notification.aggregate([
+  {
+    $lookup: {
+      from: "users",
+      localField: "for",
+      foreignField: "_id",
+      as: "users"
+    }
+  },
+  {
+    $match: {
+      "users.organization": new mongoose.Types.ObjectId(req.user.id)
+    }
+  },
+  {
+    $sort: { createdAt: -1 }
+  }
+]);
+            return response.ok(res, notifications);
         } catch (error) {
             return response.error(res, error);
         }

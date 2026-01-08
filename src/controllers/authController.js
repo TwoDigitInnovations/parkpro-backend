@@ -7,17 +7,18 @@ const mailservice = require('@services/mailservice');
 const userHelper = require('../helper/user');
 const moment = require('moment');
 const Device = require('@models/Device');
+const passport = require('passport');
 
 module.exports = {
   register: async (req, res) => {
     try {
-      const { name, email, password, phone, role, organization } = req.body;
+      const { name, email, password, phone, role, code } = req.body;
 
-      if (true) {
-        return res
-          .status(400)
-          .json({ message: 'Registration is temporarily unavailable. Please try again later.' });
-      }
+      // if (true) {
+      //   return res
+      //     .status(400)
+      //     .json({ message: 'Registration is temporarily unavailable. Please try again later.' });
+      // }
       if (password.length < 6) {
         return res
           .status(400)
@@ -28,13 +29,17 @@ module.exports = {
       if (existingUser) {
         return res.status(400).json({ message: 'User already exists' });
       }
-
+      const existingCode = await User.findOne({ code });
+       if (!existingCode) {
+        return res.status(400).json({ message: 'Invalid registration code' });
+      }
       const hashedPassword = await bcrypt.hash(password, 10);
 
       let newUser = new User({
         name,
         email,
         password: hashedPassword,
+        organization:existingCode?._id
       });
 
       if (role) {
@@ -44,9 +49,6 @@ module.exports = {
       if (phone) {
         newUser.phone = phone;
       }
-      if (organization) {
-        newUser.organization = organization
-      }
 
       await newUser.save();
 
@@ -55,6 +57,48 @@ module.exports = {
         message: "User registered successfully.",
         data: userResponse,
       });
+
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: 'Server error' });
+    }
+  },
+  create_org: async (req, res) => {
+    try {
+      const payload= req.body;
+
+    let code;
+  let isUnique = false;
+
+  while (!isUnique) {
+    // Generates a 6-digit number (100000–999999)
+    code = Math.floor(100000 + Math.random() * 900000).toString();
+
+    const existingCode = await User.findOne({ code });
+    if (!existingCode) {
+      isUnique = true;
+    }
+  }
+
+      if (payload?.password.length < 6) {
+        return res
+          .status(400)
+          .json({ message: 'Password must be at least 8 characters long' });
+      }
+
+      const existingUser = await User.findOne({ email:payload?.email });
+      if (existingUser) {
+        return res.status(400).json({ message: 'User already exists' });
+      }
+
+      const hashedPassword = await bcrypt.hash(payload?.password, 10);
+
+      let newUser = new User({...payload,role:'admin',password:hashedPassword,code});
+
+      await newUser.save();
+
+      return response.ok(res, {
+        message: "User registered successfully."});
 
     } catch (error) {
       console.error(error);
@@ -309,6 +353,62 @@ module.exports = {
     try {
       let cond = {
         role: 'tech', organization: req.user._id,
+      };
+
+      let startDate
+      let endDate
+      if (req.query.date) {
+        startDate = new Date(req.query.date);
+        console.log('SDDDD', startDate)
+        endDate = new Date(new Date(req.query.date).setDate(startDate.getDate() + 1));
+        console.log('EDDDD', endDate)
+        cond.createdAt = { $gte: startDate, $lte: endDate };
+      }
+
+      if (req.query.key) {
+        cond['$or'] = [
+          { name: { $regex: req.query.key, $options: "i" } },
+        ]
+      }
+
+      if (req.query.email) {
+        cond['$or'] = [
+          { email: { $regex: req.query.email, $options: "i" } },
+        ]
+      }
+
+      if (req.query.key && req.query.date) {
+        cond['$or'] = [
+          { name: { $regex: req.query.key, $options: "i" } },
+          { createdAt: { $gte: startDate, $lte: endDate } },
+        ]
+      }
+
+      if (req.query.email && req.query.date) {
+        cond['$or'] = [
+          { email: { $regex: req.query.email, $options: "i" } },
+          { createdAt: { $gte: startDate, $lte: endDate } },
+        ]
+      }
+
+      if (req.query.key && req.query.emai && req.query.date) {
+        cond['$or'] = [
+          { name: { $regex: req.query.key, $options: "i" } },
+          { email: { $regex: req.query.email, $options: "i" } },
+          { createdAt: { $gte: startDate, $lte: endDate } },
+        ]
+      }
+
+      const u = await User.find(cond, '-password').sort({createdAt: -1,});
+      return response.ok(res, u);
+    } catch (error) {
+      return response.error(res, error);
+    }
+  },
+  getAllOrganization: async (req, res) => {
+    try {
+      let cond = {
+        role: 'admin',
       };
 
       let startDate
