@@ -8,6 +8,7 @@ const userHelper = require('../helper/user');
 const moment = require('moment');
 const Device = require('@models/Device');
 const passport = require('passport');
+const { notify } = require('@services/notification');
 
 module.exports = {
   register: async (req, res) => {
@@ -103,6 +104,75 @@ module.exports = {
     } catch (error) {
       console.error(error);
       res.status(500).json({ message: 'Server error' });
+    }
+  },
+  create_landlord : async (req, res) => {
+    try {
+      const payload= req.body;
+    // let code;
+  // let isUnique = false;
+
+  // while (!isUnique) {
+  //   // Generates a 6-digit number (100000–999999)
+  //   code = Math.floor(100000 + Math.random() * 900000).toString();
+
+  //   const existingCode = await User.findOne({ code });
+  //   if (!existingCode) {
+  //     isUnique = true;
+  //   }
+  // }
+      if (payload?.password.length < 6) {
+        return res
+          .status(400)
+          .json({ message: 'Password must be at least 8 characters long' });
+      }
+
+      const existingUser = await User.findOne({ email:payload?.email });
+      if (existingUser) {
+        return res.status(400).json({ message: 'User already exists' });
+      }
+
+      const hashedPassword = await bcrypt.hash(payload?.password, 10);
+
+      let newUser = new User({...payload,role:'landlord',password:hashedPassword});
+
+      await newUser.save();
+
+      return response.ok(res, {
+        message: "Landlord registered successfully."});
+
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: 'Server error' });
+    }
+  },
+  updateStatus: async (req, res) => {
+    try {
+      const newresponse = await User.findByIdAndUpdate(
+        req.body.id,
+        { $set: { status: req.body.status } },
+        { new: true }
+      );
+      if (!newresponse) {
+        return response.error(res, "User not found", 404);
+      }
+      if (req.body.status === "VERIFIED") {
+        await notify(
+          newresponse?._id,
+          "Account Verified",
+          "Your account is now verified",
+        );
+      }
+      if (req.body.status === "SUSPEND") {
+        await notify(
+          newresponse?._id,
+          "Account Suspended",
+          "Your account is suspended",
+        );
+      }
+      return response.ok(res, newresponse);
+    } catch (error) {
+      return response.error(res, error);
     }
   },
 
@@ -261,99 +331,22 @@ module.exports = {
   },
 
   getAllUser: async (req, res) => {
-    console.log('AAAAAAA', new Date(req.query.date))
+    let { page = 1, limit = 20 } = req.query;
+
+      page = parseInt(page);
+      limit = parseInt(limit);
+      
     try {
       let cond = {
         role: 'user',
       };
 
-      let startDate
-      let endDate
-      if (req.query.date) {
-        startDate = new Date(req.query.date);
-        console.log('SDDDD', startDate)
-        endDate = new Date(new Date(req.query.date).setDate(startDate.getDate() + 1));
-        console.log('EDDDD', endDate)
-        cond.createdAt = { $gte: startDate, $lte: endDate };
+      if(req.query.role){
+        cond.role = req.query.role
       }
-
-      if (req.query.key) {
-        cond['$or'] = [
-          { name: { $regex: req.query.key, $options: "i" } },
-        ]
+      if (req?.query?.organization) {
+        cond.organization = req.user._id;
       }
-
-      if (req.query.email) {
-        cond['$or'] = [
-          { email: { $regex: req.query.email, $options: "i" } },
-        ]
-      }
-
-      if (req.query.key && req.query.date) {
-        cond['$or'] = [
-          { name: { $regex: req.query.key, $options: "i" } },
-          { createdAt: { $gte: startDate, $lte: endDate } },
-        ]
-      }
-
-      if (req.query.email && req.query.date) {
-        cond['$or'] = [
-          { email: { $regex: req.query.email, $options: "i" } },
-          { createdAt: { $gte: startDate, $lte: endDate } },
-        ]
-      }
-
-      if (req.query.key && req.query.emai && req.query.date) {
-        cond['$or'] = [
-          { name: { $regex: req.query.key, $options: "i" } },
-          { email: { $regex: req.query.email, $options: "i" } },
-          { createdAt: { $gte: startDate, $lte: endDate } },
-        ]
-      }
-
-      const u = await User.find(cond, '-password').sort({createdAt: -1,});
-      return response.ok(res, u);
-    } catch (error) {
-      return response.error(res, error);
-    }
-  },
-
-  getAllGuard: async (req, res) => {
-    try {
-      let cond = {
-        role: "guard",
-        organization: req.user._id,
-      };
-
-      if (req.query.date) {
-        const startDate = new Date(req.query.date);
-        const endDate = new Date(startDate);
-        endDate.setDate(startDate.getDate() + 1);
-
-        cond.createdAt = { $gte: startDate, $lte: endDate };
-      }
-
-      if (req.query.key) {
-        cond.name = { $regex: req.query.key, $options: "i" };
-      }
-
-      if (req.query.email) {
-        cond.email = { $regex: req.query.email, $options: "i" };
-      }
-
-      const guards = await User.find(cond, "-password").sort({createdAt: -1,});
-      return response.ok(res, guards);
-    } catch (error) {
-      return response.error(res, error);
-    }
-  },
-
-
-  getAllTechnician: async (req, res) => {
-    try {
-      let cond = {
-        role: 'tech', organization: req.user._id,
-      };
 
       let startDate
       let endDate
@@ -398,68 +391,159 @@ module.exports = {
           { createdAt: { $gte: startDate, $lte: endDate } },
         ]
       }
-
+     const totalUsers = await User.countDocuments(cond);
+      const totalPages = Math.ceil(totalUsers / limit);
       const u = await User.find(cond, '-password').sort({createdAt: -1,});
-      return response.ok(res, u);
+      return response.ok(res, { data: u, pagination: {
+          totalUsers,
+          totalPages,
+          currentPage: page,
+          itemsPerPage: limit,
+        }, });
     } catch (error) {
       return response.error(res, error);
     }
   },
-  getAllOrganization: async (req, res) => {
-    try {
-      let cond = {
-        role: 'admin',
-      };
+  // getAllGuard: async (req, res) => {
+  //   try {
+  //     let cond = {
+  //       role: "guard",
+  //       organization: req.user._id,
+  //     };
 
-      let startDate
-      let endDate
-      if (req.query.date) {
-        startDate = new Date(req.query.date);
-        console.log('SDDDD', startDate)
-        endDate = new Date(new Date(req.query.date).setDate(startDate.getDate() + 1));
-        console.log('EDDDD', endDate)
-        cond.createdAt = { $gte: startDate, $lte: endDate };
-      }
+  //     if (req.query.date) {
+  //       const startDate = new Date(req.query.date);
+  //       const endDate = new Date(startDate);
+  //       endDate.setDate(startDate.getDate() + 1);
 
-      if (req.query.key) {
-        cond['$or'] = [
-          { name: { $regex: req.query.key, $options: "i" } },
-        ]
-      }
+  //       cond.createdAt = { $gte: startDate, $lte: endDate };
+  //     }
 
-      if (req.query.email) {
-        cond['$or'] = [
-          { email: { $regex: req.query.email, $options: "i" } },
-        ]
-      }
+  //     if (req.query.key) {
+  //       cond.name = { $regex: req.query.key, $options: "i" };
+  //     }
 
-      if (req.query.key && req.query.date) {
-        cond['$or'] = [
-          { name: { $regex: req.query.key, $options: "i" } },
-          { createdAt: { $gte: startDate, $lte: endDate } },
-        ]
-      }
+  //     if (req.query.email) {
+  //       cond.email = { $regex: req.query.email, $options: "i" };
+  //     }
 
-      if (req.query.email && req.query.date) {
-        cond['$or'] = [
-          { email: { $regex: req.query.email, $options: "i" } },
-          { createdAt: { $gte: startDate, $lte: endDate } },
-        ]
-      }
+  //     const guards = await User.find(cond, "-password").sort({createdAt: -1,});
+  //     return response.ok(res, guards);
+  //   } catch (error) {
+  //     return response.error(res, error);
+  //   }
+  // },
+  // getAllTechnician: async (req, res) => {
+  //   try {
+  //     let cond = {
+  //       role: 'tech', organization: req.user._id,
+  //     };
 
-      if (req.query.key && req.query.emai && req.query.date) {
-        cond['$or'] = [
-          { name: { $regex: req.query.key, $options: "i" } },
-          { email: { $regex: req.query.email, $options: "i" } },
-          { createdAt: { $gte: startDate, $lte: endDate } },
-        ]
-      }
+  //     let startDate
+  //     let endDate
+  //     if (req.query.date) {
+  //       startDate = new Date(req.query.date);
+  //       console.log('SDDDD', startDate)
+  //       endDate = new Date(new Date(req.query.date).setDate(startDate.getDate() + 1));
+  //       console.log('EDDDD', endDate)
+  //       cond.createdAt = { $gte: startDate, $lte: endDate };
+  //     }
 
-      const u = await User.find(cond, '-password').sort({createdAt: -1,});
-      return response.ok(res, u);
-    } catch (error) {
-      return response.error(res, error);
-    }
-  },
+  //     if (req.query.key) {
+  //       cond['$or'] = [
+  //         { name: { $regex: req.query.key, $options: "i" } },
+  //       ]
+  //     }
+
+  //     if (req.query.email) {
+  //       cond['$or'] = [
+  //         { email: { $regex: req.query.email, $options: "i" } },
+  //       ]
+  //     }
+
+  //     if (req.query.key && req.query.date) {
+  //       cond['$or'] = [
+  //         { name: { $regex: req.query.key, $options: "i" } },
+  //         { createdAt: { $gte: startDate, $lte: endDate } },
+  //       ]
+  //     }
+
+  //     if (req.query.email && req.query.date) {
+  //       cond['$or'] = [
+  //         { email: { $regex: req.query.email, $options: "i" } },
+  //         { createdAt: { $gte: startDate, $lte: endDate } },
+  //       ]
+  //     }
+
+  //     if (req.query.key && req.query.emai && req.query.date) {
+  //       cond['$or'] = [
+  //         { name: { $regex: req.query.key, $options: "i" } },
+  //         { email: { $regex: req.query.email, $options: "i" } },
+  //         { createdAt: { $gte: startDate, $lte: endDate } },
+  //       ]
+  //     }
+
+  //     const u = await User.find(cond, '-password').sort({createdAt: -1,});
+  //     return response.ok(res, u);
+  //   } catch (error) {
+  //     return response.error(res, error);
+  //   }
+  // },
+  // getAllOrganization: async (req, res) => {
+  //   try {
+  //     let cond = {
+  //       role: 'admin',
+  //     };
+
+  //     let startDate
+  //     let endDate
+  //     if (req.query.date) {
+  //       startDate = new Date(req.query.date);
+  //       console.log('SDDDD', startDate)
+  //       endDate = new Date(new Date(req.query.date).setDate(startDate.getDate() + 1));
+  //       console.log('EDDDD', endDate)
+  //       cond.createdAt = { $gte: startDate, $lte: endDate };
+  //     }
+
+  //     if (req.query.key) {
+  //       cond['$or'] = [
+  //         { name: { $regex: req.query.key, $options: "i" } },
+  //       ]
+  //     }
+
+  //     if (req.query.email) {
+  //       cond['$or'] = [
+  //         { email: { $regex: req.query.email, $options: "i" } },
+  //       ]
+  //     }
+
+  //     if (req.query.key && req.query.date) {
+  //       cond['$or'] = [
+  //         { name: { $regex: req.query.key, $options: "i" } },
+  //         { createdAt: { $gte: startDate, $lte: endDate } },
+  //       ]
+  //     }
+
+  //     if (req.query.email && req.query.date) {
+  //       cond['$or'] = [
+  //         { email: { $regex: req.query.email, $options: "i" } },
+  //         { createdAt: { $gte: startDate, $lte: endDate } },
+  //       ]
+  //     }
+
+  //     if (req.query.key && req.query.emai && req.query.date) {
+  //       cond['$or'] = [
+  //         { name: { $regex: req.query.key, $options: "i" } },
+  //         { email: { $regex: req.query.email, $options: "i" } },
+  //         { createdAt: { $gte: startDate, $lte: endDate } },
+  //       ]
+  //     }
+
+  //     const u = await User.find(cond, '-password').sort({createdAt: -1,});
+  //     return response.ok(res, u);
+  //   } catch (error) {
+  //     return response.error(res, error);
+  //   }
+  // },
 
 };

@@ -36,12 +36,16 @@ const userSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ['user', 'admin', 'guard', 'superadmin', 'tech'],
+      enum: ['user', 'admin', 'guard', 'superadmin', 'tech','landlord_admin','landlord'],
       default: 'user',
     },
     organization: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
+    },
+     status: {
+      type: String,
+      default: "Pending",
     },
 
     createdAt: {
