@@ -8,6 +8,7 @@ const parkingRoute = require('@routes/parkingRoutes');
 const contentRoute = require('@routes/contentRoute');
 const adminRoutes = require('@routes/adminRoutes');
 const buildingRoutes = require('@routes/buildingRoute');
+const parkingLotRoutes = require('@routes/parkingLotRoute');
 
 module.exports = (app) => {
   app.use('/auth', authRoutes);
@@ -20,4 +21,5 @@ module.exports = (app) => {
   app.use('/content', contentRoute);
   app.use('/admin',adminRoutes);
   app.use('/building',buildingRoutes);
+  app.use('/parkingLot',parkingLotRoutes);
 };

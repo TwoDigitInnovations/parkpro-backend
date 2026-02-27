@@ -10,11 +10,11 @@ const {
 } = require('@controllers/buildingController');
 const { upload } = require('@services/fileUpload');
 
-router.post('/create-building', auth('user'),upload.single('image'), create_building);
-router.get('/getAllBuilding', auth('user'), getAllBuilding);
-router.post('/updateBuilding/:id', auth('user'), updateBuilding);
-router.delete('/deleteBuilding/:id', auth('user'), deleteBuildingById);
-router.get('/:id', auth('user'), getBuildingById);
+router.post('/create-building', auth('landlord_admin','landlord'),upload.single('image'), create_building);
+router.get('/getAllBuilding', auth('landlord_admin','landlord'), getAllBuilding);
+router.post('/updateBuilding/:id', auth('landlord_admin','landlord'),upload.single('image'), updateBuilding);
+router.delete('/deleteBuilding/:id', auth('landlord_admin','landlord'), deleteBuildingById);
+router.get('/:id', auth('landlord_admin','landlord'), getBuildingById);
 
 
 module.exports = router;
