@@ -12,6 +12,7 @@ const {
   create_org,
   create_landlord,
   updateStatus,
+  create_user,
 } = require('@controllers/authController');
 const auth = require('@middlewares/authMiddleware');
 const { upload } = require('@services/fileUpload');
@@ -19,6 +20,7 @@ const { upload } = require('@services/fileUpload');
 router.post('/login', login);
 router.post('/register', register);
 router.post('/create_org', auth('superadmin'), create_org);
+router.post('/create_user', auth('landlord'), create_user);
 router.post('/create_landlord', auth('landlord_admin'), create_landlord);
 router.post('/updateStatus', auth('landlord_admin'), updateStatus);
 router.post('/sendOTP', sendOTP);
@@ -37,7 +39,7 @@ router.post(
 );
 router.get(
   '/getAllUser',
-  auth('admin', 'org', 'superadmin', 'landlord_admin','landlord'),
+  auth('admin', 'org', 'superadmin', 'landlord_admin', 'landlord'),
   getAllUser,
 );
 // router.get('/getAllGuard', auth('admin', 'org'), getAllGuard);

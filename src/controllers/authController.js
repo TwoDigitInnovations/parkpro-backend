@@ -110,21 +110,55 @@ module.exports = {
       res.status(500).json({ message: 'Server error' });
     }
   },
+
+  create_user: async (req, res) => {
+    try {
+      const payload = req.body;
+
+      if (payload?.password.length < 6) {
+        return res
+          .status(400)
+          .json({ message: 'Password must be at least 8 characters long' });
+      }
+
+      const existingUser = await User.findOne({ email: payload?.email });
+      if (existingUser) {
+        return res.status(400).json({ message: 'User already exists' });
+      }
+
+      const hashedPassword = await bcrypt.hash(payload?.password, 10);
+
+      let newUser = new User({
+        ...payload,
+        role: 'user',
+        password: hashedPassword,
+        organization: req.user.id,
+      });
+
+      await newUser.save();
+
+      return response.ok(res, {
+        message: 'User registered successfully.',
+      });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: 'Server error' });
+    }
+  },
   create_landlord: async (req, res) => {
     try {
       const payload = req.body;
-      // let code;
-      // let isUnique = false;
+      let code;
+      let isUnique = false;
 
-      // while (!isUnique) {
-      //   // Generates a 6-digit number (100000–999999)
-      //   code = Math.floor(100000 + Math.random() * 900000).toString();
+      while (!isUnique) {
+        code = Math.floor(100000 + Math.random() * 900000).toString();
 
-      //   const existingCode = await User.findOne({ code });
-      //   if (!existingCode) {
-      //     isUnique = true;
-      //   }
-      // }
+        const existingCode = await User.findOne({ code });
+        if (!existingCode) {
+          isUnique = true;
+        }
+      }
       if (payload?.password.length < 6) {
         return res
           .status(400)
@@ -141,6 +175,7 @@ module.exports = {
       let newUser = new User({
         ...payload,
         role: 'landlord',
+        uniqueCode: code,
         password: hashedPassword,
       });
 
@@ -358,18 +393,19 @@ module.exports = {
         cond.role = req.query.role;
       }
       if (req?.query?.organization) {
-        cond.organization = req.user._id;
+        cond.organization = req.user.id;
       }
+      console.log(cond);
 
       let startDate;
       let endDate;
       if (req.query.date) {
         startDate = new Date(req.query.date);
-        console.log('SDDDD', startDate);
+
         endDate = new Date(
           new Date(req.query.date).setDate(startDate.getDate() + 1),
         );
-        console.log('EDDDD', endDate);
+
         cond.createdAt = { $gte: startDate, $lte: endDate };
       }
 
@@ -402,9 +438,13 @@ module.exports = {
           { createdAt: { $gte: startDate, $lte: endDate } },
         ];
       }
+      console.log(cond);
+
       const totalUsers = await User.countDocuments(cond);
       const totalPages = Math.ceil(totalUsers / limit);
-      const u = await User.find(cond, '-password').sort({ createdAt: -1 });
+      const u = await User.find(cond, '-password')
+        .sort({ createdAt: -1 })
+        .populate('organization');
       return response.ok(res, {
         data: u,
         pagination: {

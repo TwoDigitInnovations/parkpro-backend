@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const bcrypt = require("bcryptjs");
+const bcrypt = require('bcryptjs');
 
 const userSchema = new mongoose.Schema(
   {
@@ -36,16 +36,28 @@ const userSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ['user', 'admin', 'guard', 'superadmin', 'tech','landlord_admin','landlord'],
+      enum: [
+        'user',
+        'admin',
+        'guard',
+        'superadmin',
+        'tech',
+        'landlord_admin',
+        'landlord',
+      ],
       default: 'user',
+    },
+    uniqueCode: {
+      type: String,
+      unique: true,
     },
     organization: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      ref: 'User',
     },
-     status: {
+    status: {
       type: String,
-      default: "Pending",
+      default: 'Pending',
     },
 
     createdAt: {

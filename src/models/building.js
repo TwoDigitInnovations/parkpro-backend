@@ -48,6 +48,10 @@ const buildingSchema = new mongoose.Schema(
     location: {
       type: pointSchema,
     },
+    CreatedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+    },
   },
   {
     timestamps: true,
