@@ -35,6 +35,23 @@ module.exports = {
       return response.error(res, error);
     }
   },
+  getNeabyParkingLot: async (req, res) => {
+    try {
+      let { page = 1, limit = 20 } = req.query;
+      const payload=req.body
+      let parkinglots = await ParkingLot.find({ location: {
+          $near: {
+            $maxDistance: 1609.34 * 5,
+            $geometry: payload.location,
+          },
+        }, }).sort({ createdAt: -1 })
+        .limit(limit * 1)
+        .skip((page - 1) * limit);
+      return response.ok(res, parkinglots );
+    } catch (error) {
+      return response.error(res, error);
+    }
+  },
 
   getParkingLotById: async (req, res) => {
     try {
