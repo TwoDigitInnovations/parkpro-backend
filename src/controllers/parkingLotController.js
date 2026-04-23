@@ -22,7 +22,10 @@ module.exports = {
 
       const totalUsers = await ParkingLot.countDocuments();
       const totalPages = Math.ceil(totalUsers / limit);
-      let parkinglots = await ParkingLot.find({ CreatedBy: req.user.id });
+      let parkinglots = await ParkingLot.find({
+        CreatedBy: req.user.id,
+      }).populate('building');
+
       return response.ok(res, {
         data: parkinglots,
         pagination: {
