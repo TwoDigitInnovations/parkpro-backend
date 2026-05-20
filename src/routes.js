@@ -11,6 +11,7 @@ const buildingRoutes = require('@routes/buildingRoute');
 const parkingLotRoutes = require('@routes/parkingLotRoute');
 const bookingRoutes = require('@routes/bookingRoute');
 const parkingPermitRoutes = require('@routes/parkingPermitRoute');
+const kioskRoutes = require('@routes/kioskRoute');
 
 module.exports = (app) => {
   app.use('/auth', authRoutes);
@@ -26,4 +27,5 @@ module.exports = (app) => {
   app.use('/parkingLot',parkingLotRoutes);
   app.use('/booking',bookingRoutes);
   app.use('/parkingPermit', parkingPermitRoutes);
+  app.use('/kiosk', kioskRoutes);
 };
