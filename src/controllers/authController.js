@@ -396,7 +396,7 @@ module.exports = {
         cond.role = req.query.role;
       }
       if (req?.query?.organization) {
-        cond.organization = req.user.id;
+        cond.organization = req.query.organization;
       }
       console.log(cond);
 
@@ -475,7 +475,7 @@ module.exports = {
     try {
       let cond = {
         role: 'guard',
-        organization: req.user._id,
+        organization: req.query.organization || req.user._id,
       };
 
       if (req.query.date) {
@@ -503,7 +503,7 @@ module.exports = {
     try {
       let cond = {
         role: 'tech',
-        organization: req.user._id,
+        organization: req.query.organization || req.user._id,
       };
 
       if (req.query.date) {
