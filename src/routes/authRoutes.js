@@ -17,10 +17,11 @@ const {
   getAllTechnician,
 } = require('@controllers/authController');
 const auth = require('@middlewares/authMiddleware');
+const { optionalAuth } = require('@middlewares/authMiddleware');
 const { upload } = require('@services/fileUpload');
 
 router.post('/login', login);
-router.post('/register', register);
+router.post('/register', optionalAuth, register);
 router.post('/create_org', auth('superadmin'), create_org);
 router.post('/create_user', auth('landlord'), create_user);
 router.post('/create_landlord', auth('landlord_admin'), create_landlord);

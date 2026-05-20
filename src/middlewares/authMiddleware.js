@@ -27,4 +27,12 @@ const auth = (...allowedRoles) => {
     }
 };
 
+const optionalAuth = (req, res, next) => {
+    passport.authenticate('jwt', { session: false }, function (err, user) {
+        if (user) req.user = user;
+        next();
+    })(req, res, next);
+};
+
 module.exports = auth;
+module.exports.optionalAuth = optionalAuth;

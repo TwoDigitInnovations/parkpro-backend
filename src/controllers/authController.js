@@ -13,7 +13,7 @@ const { notify } = require('@services/notification');
 module.exports = {
   register: async (req, res) => {
     try {
-      const { name, email, password, phone, role, code } = req.body;
+      const { name, email, password, phone, role, code, organization } = req.body;
 
       if (password?.length < 6) {
         return res
@@ -25,26 +25,34 @@ module.exports = {
       if (existingUser) {
         return res.status(400).json({ message: 'User already exists' });
       }
-      const existingCode = await User.findOne({ code });
-      if (!existingCode) {
-        return res.status(400).json({ message: 'Invalid registration code' });
-      }
+
       const hashedPassword = await bcrypt.hash(password, 10);
+
+      let orgId;
+      const isPrivileged = req.user && ['superadmin', 'admin'].includes(req.user.role);
+
+      if (isPrivileged) {
+        orgId = organization;
+      } else {
+        if (!code) {
+          return res.status(400).json({ message: 'Registration code is required' });
+        }
+        const existingCode = await User.findOne({ code });
+        if (!existingCode) {
+          return res.status(400).json({ message: 'Invalid registration code' });
+        }
+        orgId = existingCode._id;
+      }
 
       let newUser = new User({
         name,
         email,
         password: hashedPassword,
-        organization: existingCode?._id,
+        organization: orgId,
       });
 
-      if (role) {
-        newUser.role = role;
-      }
-
-      if (phone) {
-        newUser.phone = phone;
-      }
+      if (role) newUser.role = role;
+      if (phone) newUser.phone = phone;
 
       await newUser.save();
 
