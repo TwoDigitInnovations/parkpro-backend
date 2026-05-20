@@ -8,11 +8,11 @@ const parkingPermitSchema = new mongoose.Schema(
       ref: 'User',
       required: true,
     },
-    fullName: {
+    holderName: {
       type: String,
       required: true,
     },
-    email: {
+    holderEmail: {
       type: String,
       required: true,
     },
@@ -20,7 +20,7 @@ const parkingPermitSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    permitType: {
+    type: {
       type: String,
       enum: ['Resident', 'Visitor', 'Employee', 'Disabled', 'Temporary'],
       default: 'Resident',

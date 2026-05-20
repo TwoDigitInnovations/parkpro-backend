@@ -26,15 +26,17 @@ module.exports = {
       if (req.query.status) cond.status = req.query.status;
       if (req.query.permitType) cond.permitType = req.query.permitType;
 
+      if (req.query.type) cond.type = req.query.type;
+
       if (req.query.key) {
         cond['$or'] = [
-          { fullName: { $regex: req.query.key, $options: 'i' } },
+          { holderName: { $regex: req.query.key, $options: 'i' } },
           { licensePlate: { $regex: req.query.key, $options: 'i' } },
         ];
       }
 
       if (req.query.email) {
-        cond.email = { $regex: req.query.email, $options: 'i' };
+        cond.holderEmail = { $regex: req.query.email, $options: 'i' };
       }
 
       if (req.query.date) {

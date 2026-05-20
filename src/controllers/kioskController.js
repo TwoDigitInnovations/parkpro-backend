@@ -32,8 +32,10 @@ module.exports = {
         organization: req.query.organization || req.user._id,
       };
 
-      if (req.query.deploymentStatus) cond.deploymentStatus = req.query.deploymentStatus;
-      if (req.query.zoneAssignment) cond.zoneAssignment = req.query.zoneAssignment;
+      if (req.query.deploymentStatus)
+        cond.deploymentStatus = req.query.deploymentStatus;
+      if (req.query.zoneAssignment)
+        cond.zoneAssignment = req.query.zoneAssignment;
 
       if (req.query.key) {
         cond['$or'] = [

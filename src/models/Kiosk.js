@@ -32,9 +32,8 @@ const kioskSchema = new mongoose.Schema(
       type: String,
     },
     deploymentStatus: {
-      type: String,
-      enum: ['Active', 'Inactive', 'Maintenance', 'Pending'],
-      default: 'Pending',
+      type: Boolean,
+      default: false,
     },
     photo: {
       type: String,
