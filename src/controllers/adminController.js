@@ -12,8 +12,9 @@ module.exports = {
           Report.countDocuments({
             status: {
               $in: [
-                'Penalty issued',
-                'Vehicle Missing',
+                'Parking Notice Issued',
+                'Vehicle No Longer Present',
+                'Control Fee Issued',
                 'Resolve',
                 'Unresolve',
               ],

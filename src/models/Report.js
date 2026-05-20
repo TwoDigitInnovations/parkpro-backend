@@ -69,7 +69,7 @@ const reportSchema = new mongoose.Schema(
     ],
     status: {
       type: String,
-      enum: ['Pending', 'Accepted','Penalty issued','Vehicle Missing','Resolve','Unresolve'],
+      enum: ['Pending', 'Accepted','Parking Notice Issued','Control Fee Issued','Vehicle No Longer Present','Resolve','Unresolve'],
       default: 'Pending',
     },
     // verified: {
