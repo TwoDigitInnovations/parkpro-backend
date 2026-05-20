@@ -43,6 +43,14 @@ const bookingSchema = new mongoose.Schema(
       enum: ['hourly', 'daily', 'monthly'],
       required: true,
     },
+    selected_row: {
+      type: Number,
+      required: true,
+    },
+    selected_column: {
+      type: Number,
+      required: true,
+    },
 
     // ─── Vehicle ────────────────────────────────────────────────
     license_plate: {
