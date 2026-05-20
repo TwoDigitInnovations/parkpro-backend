@@ -64,6 +64,43 @@ const userSchema = new mongoose.Schema(
       type: Date,
       default: Date.now,
     },
+
+    address: {
+      type: String,
+    },
+    city: {
+      type: String,
+    },
+    country: {
+      type: String,
+    },
+    pincode: {
+      type: String,
+    },
+    empId: {
+      type: String,
+    },
+    position: {
+      type: String,
+    },
+    zone: {
+      type: String,
+    },
+    techId: {
+      type: String,
+    },
+    certLevel: {
+      type: String,
+    },
+    specializations: {
+      type: [String],
+      default: [],
+    },
+    shift: {
+      type: String,
+      enum: ['MORNING', 'AFTERNOON', 'EVENING', 'NIGHT', ''],
+      default: '',
+    },
   },
   { timestamps: true },
 );

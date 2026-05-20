@@ -15,12 +15,7 @@ module.exports = {
     try {
       const { name, email, password, phone, role, code } = req.body;
 
-      // if (true) {
-      //   return res
-      //     .status(400)
-      //     .json({ message: 'Registration is temporarily unavailable. Please try again later.' });
-      // }
-      if (password.length < 6) {
+      if (password?.length < 6) {
         return res
           .status(400)
           .json({ message: 'Password must be at least 8 characters long' });
@@ -458,91 +453,64 @@ module.exports = {
       return response.error(res, error);
     }
   },
-  // getAllGuard: async (req, res) => {
-  //   try {
-  //     let cond = {
-  //       role: "guard",
-  //       organization: req.user._id,
-  //     };
+  getAllGuard: async (req, res) => {
+    try {
+      let cond = {
+        role: 'guard',
+        organization: req.user._id,
+      };
 
-  //     if (req.query.date) {
-  //       const startDate = new Date(req.query.date);
-  //       const endDate = new Date(startDate);
-  //       endDate.setDate(startDate.getDate() + 1);
+      if (req.query.date) {
+        const startDate = new Date(req.query.date);
+        const endDate = new Date(startDate);
+        endDate.setDate(startDate.getDate() + 1);
+        cond.createdAt = { $gte: startDate, $lte: endDate };
+      }
 
-  //       cond.createdAt = { $gte: startDate, $lte: endDate };
-  //     }
+      if (req.query.key) {
+        cond['$or'] = [{ name: { $regex: req.query.key, $options: 'i' } }];
+      }
 
-  //     if (req.query.key) {
-  //       cond.name = { $regex: req.query.key, $options: "i" };
-  //     }
+      if (req.query.email) {
+        cond['$or'] = [{ email: { $regex: req.query.email, $options: 'i' } }];
+      }
 
-  //     if (req.query.email) {
-  //       cond.email = { $regex: req.query.email, $options: "i" };
-  //     }
+      const guards = await User.find(cond, '-password').sort({ createdAt: -1 }).populate('organization', '-password');
+      return response.ok(res, { data: guards });
+    } catch (error) {
+      return response.error(res, error);
+    }
+  },
+  getAllTechnician: async (req, res) => {
+    try {
+      let cond = {
+        role: 'tech',
+        organization: req.user._id,
+      };
 
-  //     const guards = await User.find(cond, "-password").sort({createdAt: -1,});
-  //     return response.ok(res, guards);
-  //   } catch (error) {
-  //     return response.error(res, error);
-  //   }
-  // },
-  // getAllTechnician: async (req, res) => {
-  //   try {
-  //     let cond = {
-  //       role: 'tech', organization: req.user._id,
-  //     };
+      if (req.query.date) {
+        const startDate = new Date(req.query.date);
+        const endDate = new Date(startDate);
+        endDate.setDate(startDate.getDate() + 1);
+        cond.createdAt = { $gte: startDate, $lte: endDate };
+      }
 
-  //     let startDate
-  //     let endDate
-  //     if (req.query.date) {
-  //       startDate = new Date(req.query.date);
-  //       console.log('SDDDD', startDate)
-  //       endDate = new Date(new Date(req.query.date).setDate(startDate.getDate() + 1));
-  //       console.log('EDDDD', endDate)
-  //       cond.createdAt = { $gte: startDate, $lte: endDate };
-  //     }
+      if (req.query.key) {
+        cond['$or'] = [{ name: { $regex: req.query.key, $options: 'i' } }];
+      }
 
-  //     if (req.query.key) {
-  //       cond['$or'] = [
-  //         { name: { $regex: req.query.key, $options: "i" } },
-  //       ]
-  //     }
+      if (req.query.email) {
+        cond['$or'] = [{ email: { $regex: req.query.email, $options: 'i' } }];
+      }
 
-  //     if (req.query.email) {
-  //       cond['$or'] = [
-  //         { email: { $regex: req.query.email, $options: "i" } },
-  //       ]
-  //     }
-
-  //     if (req.query.key && req.query.date) {
-  //       cond['$or'] = [
-  //         { name: { $regex: req.query.key, $options: "i" } },
-  //         { createdAt: { $gte: startDate, $lte: endDate } },
-  //       ]
-  //     }
-
-  //     if (req.query.email && req.query.date) {
-  //       cond['$or'] = [
-  //         { email: { $regex: req.query.email, $options: "i" } },
-  //         { createdAt: { $gte: startDate, $lte: endDate } },
-  //       ]
-  //     }
-
-  //     if (req.query.key && req.query.emai && req.query.date) {
-  //       cond['$or'] = [
-  //         { name: { $regex: req.query.key, $options: "i" } },
-  //         { email: { $regex: req.query.email, $options: "i" } },
-  //         { createdAt: { $gte: startDate, $lte: endDate } },
-  //       ]
-  //     }
-
-  //     const u = await User.find(cond, '-password').sort({createdAt: -1,});
-  //     return response.ok(res, u);
-  //   } catch (error) {
-  //     return response.error(res, error);
-  //   }
-  // },
+      const technicians = await User.find(cond, '-password')
+        .sort({ createdAt: -1 })
+        .populate('organization', '-password');
+      return response.ok(res, { data: technicians });
+    } catch (error) {
+      return response.error(res, error);
+    }
+  },
   // getAllOrganization: async (req, res) => {
   //   try {
   //     let cond = {

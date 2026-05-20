@@ -13,6 +13,8 @@ const {
   create_landlord,
   updateStatus,
   create_user,
+  getAllGuard,
+  getAllTechnician,
 } = require('@controllers/authController');
 const auth = require('@middlewares/authMiddleware');
 const { upload } = require('@services/fileUpload');
@@ -42,8 +44,8 @@ router.get(
   auth('admin', 'org', 'superadmin', 'landlord_admin', 'landlord'),
   getAllUser,
 );
-// router.get('/getAllGuard', auth('admin', 'org'), getAllGuard);
-// router.get('/getAllTechnician', auth('admin', 'org'), getAllTechnician);
+router.get('/getAllGuard', auth('admin','superadmin', 'org', 'landlord_admin'), getAllGuard);
+router.get('/getAllTechnician', auth('admin', 'superadmin', 'org', 'landlord_admin'), getAllTechnician);
 // router.get('/getAllOrganization', auth('superadmin'), getAllOrganization);
 
 router.get('/admin-only', auth('admin'), (req, res) => {
