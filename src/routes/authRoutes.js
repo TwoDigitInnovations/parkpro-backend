@@ -15,6 +15,7 @@ const {
   create_user,
   getAllGuard,
   getAllTechnician,
+  deleteUser,
 } = require('@controllers/authController');
 const auth = require('@middlewares/authMiddleware');
 const { optionalAuth } = require('@middlewares/authMiddleware');
@@ -47,6 +48,7 @@ router.get(
 );
 router.get('/getAllGuard', auth('admin','superadmin', 'org', 'landlord_admin'), getAllGuard);
 router.get('/getAllTechnician', auth('admin', 'superadmin', 'org', 'landlord_admin'), getAllTechnician);
+router.delete('/deleteUser/:id', auth('admin', 'superadmin', 'landlord_admin'), deleteUser);
 // router.get('/getAllOrganization', auth('superadmin'), getAllOrganization);
 
 router.get('/admin-only', auth('admin'), (req, res) => {

@@ -461,6 +461,16 @@ module.exports = {
       return response.error(res, error);
     }
   },
+  deleteUser: async (req, res) => {
+    try {
+      const user = await User.findByIdAndDelete(req.params.id);
+      if (!user) return response.notFound(res, 'User not found');
+      return response.ok(res, { message: 'User deleted successfully' });
+    } catch (error) {
+      return response.error(res, error);
+    }
+  },
+
   getAllGuard: async (req, res) => {
     try {
       let cond = {
